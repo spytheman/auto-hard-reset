@@ -21,8 +21,8 @@ type MinerConfig struct {
 }
 
 type ConfigurationFile struct {
-	WaitSeconds int // Period of the timer checks in seconds
-	Miners []MinerConfig // An array of the 
+	WaitSeconds int           // Period of the timer checks in seconds
+	Miners      []MinerConfig // An array of the
 }
 
 var log = logging.MustGetLogger("auto-hard-reset-log")
@@ -44,7 +44,7 @@ func main() {
 	}
 
 	log.Notice("Waiting time in seconds for the timer:", configFile.WaitSeconds)
-	
+
 	minerConfigs := configFile.Miners
 	totalMinerConfigs := len(minerConfigs)
 	log.Notice("Found miner configurations:", totalMinerConfigs)
@@ -74,7 +74,7 @@ func main() {
 	work := func() {
 		log.Notice("HELLO! I WILL KEEP YOUR MONEY MAKING MACHINES ONLINE!")
 		// Run the check right away the first time
-		check() 
+		check()
 		timer := time.Duration(configFile.WaitSeconds) * time.Second
 		log.Notice("Starting timer: ", timer)
 		//Check the machines periodically
