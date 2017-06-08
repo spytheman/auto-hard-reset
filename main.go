@@ -20,6 +20,11 @@ type MinerConfig struct {
 	Info string // ADDITIONAL INFO
 }
 
+type ConfigurationFile struct {
+	WaitSeconds int // Period of the timer checks in seconds
+	Miners []MinerConfig // An array of the 
+}
+
 var log = logging.MustGetLogger("auto-hard-reset-log")
 
 func main() {
@@ -31,13 +36,16 @@ func main() {
 	}
 
 	log.Notice("Parsing configuration file...")
-	var minerConfigs []MinerConfig
-	err = json.Unmarshal(configFileContent, &minerConfigs)
+	var configFile ConfigurationFile
+	err = json.Unmarshal(configFileContent, &configFile)
 	if err != nil {
 		log.Error("Parsing JSON content, but:", err)
 		os.Exit(2)
 	}
 
+	log.Notice("Waiting time in seconds for the timer:", configFile.WaitSeconds)
+	
+	minerConfigs := configFile.Miners
 	totalMinerConfigs := len(minerConfigs)
 	log.Notice("Found miner configurations:", totalMinerConfigs)
 
@@ -52,24 +60,25 @@ func main() {
 
 	LogMachines()
 
-	work := func() {
-		timer := 33 * time.Minute
-		log.Notice("HELLO! I WILL KEEP YOUR MONEY MAKING MACHINES ONLINE!")
-		log.Notice("Starting timer: ", timer)
-
-		//Check the machines every 33 minutes
-		gobot.Every(timer, func() {
-			log.Notice("Checking machines: ")
-			for i := 0; i < len(miningRigs); i++ {
-				log.Notice("Ping miner: ", i, "name: ", miningRigs[i].name, "ip: ", miningRigs[i].ip)
-				if !miningRigs[i].Ping() {
-					miningRigs[i].Restarter()
-				}
+	check := func() {
+		log.Notice("Checking machines: ")
+		for i := 0; i < len(miningRigs); i++ {
+			log.Notice("Ping miner: ", i, "name: ", miningRigs[i].name, "ip: ", miningRigs[i].ip)
+			if !miningRigs[i].Ping() {
+				miningRigs[i].Restarter()
 			}
+		}
+		log.Notice("Checking machines DONE")
+	}
 
-			log.Notice("Checking machines DONE")
-			log.Notice("Restarting timer")
-		})
+	work := func() {
+		log.Notice("HELLO! I WILL KEEP YOUR MONEY MAKING MACHINES ONLINE!")
+		// Run the check right away the first time
+		check() 
+		timer := time.Duration(configFile.WaitSeconds) * time.Second
+		log.Notice("Starting timer: ", timer)
+		//Check the machines periodically
+		gobot.Every(timer, check)
 	}
 
 	robot := gobot.NewRobot("RPiMinerHardReset", r, work)
