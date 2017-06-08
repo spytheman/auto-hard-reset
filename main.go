@@ -40,7 +40,7 @@ func main() {
 
 	totalMinerConfigs := len(minerConfigs)
 	log.Notice("Found miner configurations:", totalMinerConfigs)
-	
+
 	r := raspi.NewAdaptor()
 	///MINING RIGS CONFIGURATION///
 	miningRigs := make([]Rig, 0)
@@ -72,24 +72,10 @@ func main() {
 		})
 	}
 
-	robot := gobot.NewRobot("RPiMinerHardReset",
-		[]gobot.Connection{r},
-		[]gobot.Device{miningRigs[0].pin},
-		[]gobot.Device{miningRigs[1].pin},
-		[]gobot.Device{miningRigs[2].pin},
-		[]gobot.Device{miningRigs[3].pin},
-		[]gobot.Device{miningRigs[4].pin},
-		[]gobot.Device{miningRigs[5].pin},
-		[]gobot.Device{miningRigs[6].pin},
-		[]gobot.Device{miningRigs[7].pin},
-		[]gobot.Device{miningRigs[8].pin},
-		[]gobot.Device{miningRigs[9].pin},
-		[]gobot.Device{miningRigs[10].pin},
-		[]gobot.Device{miningRigs[11].pin},
-		//IF YOU ADD MORE MACHINES ADD INFO HERE
-		//[]gobot.Device{miningRigs[12].pin},
-		work,
-	)
+	robot := gobot.NewRobot("RPiMinerHardReset", r, work)
+	for _, rig := range miningRigs {
+		robot.AddDevice(rig.pin)
+	}
 
 	robot.Start()
 }
